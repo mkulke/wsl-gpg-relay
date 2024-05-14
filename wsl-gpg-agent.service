@@ -1,0 +1,15 @@
+[Unit]
+Description=socat machinery to connect to a gpg agent running on the WSL host
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+Environment="USER_GPG_SOCK=/run/user/%U/gnupg/S.gpg-agent"
+Environment="WSL_GPG_RELAY_EXE=change me"
+ExecCondition=/bin/sh -c '! "$@"' -- pgrep -U %U gpg-agent
+ExecStartPre=rm -f "${USER_GPG_SOCK}"
+ExecStart=/usr/bin/socat UNIX-LISTEN:"${USER_GPG_SOCK}",fork, EXEC:"${WSL_GPG_RELAY_EXE}",nofork
+
+[Install]
+WantedBy=default.target
